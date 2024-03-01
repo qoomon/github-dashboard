@@ -6,7 +6,7 @@ import {paginateRest} from "@octokit/plugin-paginate-rest";
 import {idTokenVerifier} from "../_lib/jwt.js";
 import {getUser} from "../_lib/user-store.js";
 
-const DEVELOPMENT = false
+const DEVELOPMENT = true
 
 export default async (request: VercelRequest, response: VercelResponse) => run(async () => {
     switch (request.method) {

@@ -16,13 +16,14 @@ type WorkflowRun = {
     created_at: string
 }
 
-type WorkflowRunStatus = "queued" | "in_progress" | "completed"
+type WorkflowRunStatus = "queued" | "in_progress" | "waiting" | "completed"
 
 type WorkflowRunConclusion =
-    "success"
+    "neutral"
+    | "success"
     | "failure"
-    | "neutral"
     | "cancelled"
-    | "skipped"
-    | "timed_out"
     | "action_required"
+    | "timed_out"
+    | "skipped"
+    | "stale"

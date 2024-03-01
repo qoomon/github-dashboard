@@ -1,25 +1,32 @@
 <template>
   <div class="workflow-card">
-    <a :href="workflowComputed.html_url">
-      <div class="workflow-repository">{{ workflowComputed.owner }}/{{ workflowComputed.repo }}</div>
-      <div style="display: flex; align-items: center;">
-        <a :href="workflowComputed.last_run.html_url" class="workflow-indicator"
-           style="display: inline-flex; margin-right: 8px;">
-          <IconGitHubActions :icon="runStatusIcon(workflowComputed.last_run)"/>
+    <a target="_blank" :href="workflow.html_url">
+      <div class="workflow-body">
+        <a target="_blank" :href="workflowComputed.last_run.html_url"
+           class="workflow-indicator"
+           style="padding-top: 0.1em;">
+          <ActionsStatusIcon width="22px" height="22px" :run="workflowComputed.last_run"/>
         </a>
-        <span class="workflow-name">{{ workflow.name }}</span>
+        <div>
+          <div class="workflow-name">{{ workflow.name }}</div>
+          <div class="workflow-repository">{{ workflow.owner }}/{{ workflow.repo }}</div>
+        </div>
       </div>
     </a>
-    <div>
-      <div v-for="entryRuns in workflowComputed.runs_timetable"
-           class="run-indicator" :style="{ background: runsStatusBackground(entryRuns)}">
-      </div>
+    <!-- TODO security findings -->
+    <!-- TODO pull requests -->
+    <div class="workflow-timetable">
+      <a v-for="entryRuns in workflowComputed.runs_timetable"
+         target="_blank"
+         :href="`${workflow.html_url}?query=${encodeURIComponent(`created:<${entryRuns[0]?.created_at}`)}`"
+         class="workflow-timetable-section" :style="{ background: runsStatusBackground(entryRuns)}">
+      </a>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import IconGitHubActions from "@/components/ActionsIcon.vue";
+import ActionsStatusIcon from "@/components/ActionsStatusIcon.vue";
 import {computed, type PropType} from "vue";
 
 const props = defineProps({
@@ -35,9 +42,8 @@ const props = defineProps({
 
 const workflowComputed = computed(() => {
   return {
-    ...props.workflow,
     last_run: props.workflow.runs[0],
-    runs_timetable: createWorkflowRunTimetable(props.workflow.runs.slice(1), props.timetableDays)
+    runs_timetable: createWorkflowRunTimetable(props.workflow.runs, props.timetableDays)
   }
 })
 
@@ -100,28 +106,6 @@ function runStatusColor({status, conclusion}: { status: WorkflowRunStatus, concl
   return "#ff00d0"
 }
 
-function runStatusIcon({status, conclusion}: { status: WorkflowRunStatus, conclusion: WorkflowRunConclusion }) {
-  switch (status) {
-    case "queued":
-    case "in_progress":
-      return "running"
-    case "completed":
-      switch (conclusion) {
-        case "success":
-        case "neutral":
-          return "success"
-        case "failure":
-        case "action_required":
-        case "timed_out":
-          return "failure"
-        case "cancelled":
-        case "skipped":
-          return "cancelled"
-      }
-  }
-
-  return "failure"
-}
 </script>
 
 <style scoped>
@@ -130,35 +114,42 @@ function runStatusIcon({status, conclusion}: { status: WorkflowRunStatus, conclu
   border-style: solid;
   border-color: #30363d;
   border-radius: 0.375rem;
-  padding: 0.8rem;
-  background: #0d1117;
+  background: #04070a;
   width: 100%;
   max-width: 440px;
+  color: #30363d;
+}
+
+.workflow-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
 }
 
 .workflow-repository {
   color: #838d97;
   font-weight: 600;
   font-size: 12px;
-  margin-bottom: 8px;
 }
 
 .workflow-name {
   font-weight: 600;
 }
 
-.run-indicator {
-  display: inline-block;
-  width: 20px;
-  height: 4px;
-  border-radius: 2px;
-  background: #151a23;
-  margin: 14px 4px 0;
-  opacity: 0.8;
+.workflow-timetable {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.workflow-indicator {
-
+.workflow-timetable-section {
+  display: inline-block;
+  flex-grow: 1;
+  height: 5px;
+  border-radius: 2px 2px 0 0;
+  background: #232c3d;
+  opacity: 0.8;
 }
 
 </style>
